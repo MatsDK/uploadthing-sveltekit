@@ -1,4 +1,4 @@
-Example on how to use use [UploadThing](https://uploadthing.com/) with SvelteKit.
+Example on how to use use [uploadthing](https://uploadthing.com/) with SvelteKit.
 
 -   In [src\routes\api\uploadthing\+server.ts](https://github.com/MatsDK/uploadthing-sveltekit/blob/main/src/routes/api/uploadthing/%2Bserver.ts)
     -   `uploadthingId` should be set (sveltekit loads env variables differently).

@@ -1,4 +1,4 @@
-import { generateSvelteKitHelpers } from "./index";
+import { generateSvelteKitHelpers } from "./client";
 import { createFilething, type FileRouter } from "uploadthing/server";
 
 const f = createFilething();

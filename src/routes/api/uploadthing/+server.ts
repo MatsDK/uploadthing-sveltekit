@@ -1,6 +1,6 @@
 import { env } from "$env/dynamic/private";
-import { createSvelteKitHandler } from "../../../lib/server.mjs";
-import { ourFileRouter } from "../../../lib/uploadthing";
+import { createSvelteKitHandler } from "$lib/server";
+import { ourFileRouter } from "$lib/uploadthing";
 
 const { POST } = createSvelteKitHandler({
     router: ourFileRouter,

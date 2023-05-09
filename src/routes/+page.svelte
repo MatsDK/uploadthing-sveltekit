@@ -42,6 +42,7 @@
 	Click here to upload files
 </FileDrop>
 
+<br>
 {#if loading}
 	<span>Loading...</span>
 {/if}
