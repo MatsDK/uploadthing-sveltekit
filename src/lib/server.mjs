@@ -1,8 +1,15 @@
-
 var __getOwnPropNames = Object.getOwnPropertyNames;
-var __commonJS = (cb, mod) => function __require() {
-	return mod || (0, cb[__getOwnPropNames(cb)[0]])((mod = { exports: {} }).exports, mod), mod.exports;
-};
+var __commonJS = (cb, mod) =>
+	function __require() {
+		return (
+			mod ||
+			(0, cb[__getOwnPropNames(cb)[0]])(
+				(mod = { exports: {} }).exports,
+				mod,
+			),
+			mod.exports
+		);
+	};
 
 // package.json
 var require_package = __commonJS({
@@ -15,22 +22,18 @@ var require_package = __commonJS({
 				"./package.json": "./package.json",
 				"./client": {
 					import: "./dist/client.mjs",
-					types: "./dist/client.d.ts"
+					types: "./dist/client.d.ts",
 				},
 				"./server": {
 					import: "./dist/server.mjs",
-					types: "./dist/server.d.ts"
-				}
+					types: "./dist/server.d.ts",
+				},
 			},
-			files: [
-				"dist"
-			],
+			files: ["dist"],
 			typesVersions: {
 				"*": {
-					"*": [
-						"dist/*"
-					]
-				}
+					"*": ["dist/*"],
+				},
 			},
 			scripts: {
 				lint: "eslint *.ts* --max-warnings 0",
@@ -39,7 +42,7 @@ var require_package = __commonJS({
 				dev: "tsup --watch src/* --watch client.ts --watch server.ts",
 				test: "vitest run",
 				"test:watch": "vitest",
-				typecheck: "tsc --noEmit"
+				typecheck: "tsc --noEmit",
 			},
 			devDependencies: {
 				"@types/node": "18.16.0",
@@ -48,13 +51,13 @@ var require_package = __commonJS({
 				next: "13.4.1",
 				tsup: "6.7.0",
 				typescript: "5.1.0-beta",
-				vitest: "^0.30.1"
+				vitest: "^0.30.1",
 			},
 			publishConfig: {
-				access: "public"
-			}
+				access: "public",
+			},
 		};
-	}
+	},
 });
 
 // src/upload-builder.ts
@@ -63,33 +66,33 @@ function createBuilder(initDef = {}) {
 		fileTypes: ["image"],
 		maxSize: "1MB",
 		middleware: async () => ({}),
-		...initDef
+		...initDef,
 	};
 	return {
 		fileTypes(types) {
 			return createBuilder({
 				..._def,
-				fileTypes: types
+				fileTypes: types,
 			});
 		},
 		maxSize(size) {
 			return createBuilder({
 				..._def,
-				maxSize: size
+				maxSize: size,
 			});
 		},
 		middleware(resolver) {
 			return createBuilder({
 				..._def,
-				middleware: resolver
+				middleware: resolver,
 			});
 		},
 		onUploadComplete(resolver) {
 			return {
 				_def,
-				resolver
+				resolver,
 			};
-		}
+		},
 	};
 }
 
@@ -132,17 +135,13 @@ if (process.env.NODE_ENV !== "development") {
 	console.log("[UT] UploadThing dev server is now running!");
 }
 var isValidResponse = (response) => {
-	if (!response.ok)
-		return false;
-	if (response.status >= 400)
-		return false;
-	if (!response.headers.has("x-uploadthing-version"))
-		return false;
+	if (!response.ok) return false;
+	if (response.status >= 400) return false;
+	if (!response.headers.has("x-uploadthing-version")) return false;
 	return true;
 };
 var conditionalDevServer = async (fileKey) => {
-	if (process.env.NODE_ENV !== "development")
-		return;
+	if (process.env.NODE_ENV !== "development") return;
 	const queryUrl = generateUploadThingURL(`/api/pollUpload/${fileKey}`);
 	let tries = 0;
 	while (tries < 20) {
@@ -154,7 +153,10 @@ var conditionalDevServer = async (fileKey) => {
 			if (!callbackUrl.startsWith("http"))
 				callbackUrl = "http://" + callbackUrl;
 
-			console.log("[UT] SIMULATING FILE UPLOAD WEBHOOK CALLBACK", callbackUrl);
+			console.log(
+				"[UT] SIMULATING FILE UPLOAD WEBHOOK CALLBACK",
+				callbackUrl,
+			);
 			const response = await fetch(callbackUrl, {
 				method: "POST",
 				body: JSON.stringify({
@@ -162,21 +164,24 @@ var conditionalDevServer = async (fileKey) => {
 					metadata: JSON.parse(file.metadata ?? "{}"),
 					file: {
 						url: `https://uploadthing.com/f/${encodeURIComponent(
-							fileKey ?? ""
+							fileKey ?? "",
 						)}`,
-						name: file.fileName
-					}
+						name: file.fileName,
+					},
 				}),
 				headers: {
-					"uploadthing-hook": "callback"
-				}
+					"uploadthing-hook": "callback",
+				},
 			});
 			if (isValidResponse(response)) {
-				console.log("[UT] Successfully simulated callback for file", fileKey);
+				console.log(
+					"[UT] Successfully simulated callback for file",
+					fileKey,
+				);
 			} else {
 				console.error(
 					"[UT] Failed to simulate callback for file. Is your webhook configured correctly?",
-					fileKey
+					fileKey,
 				);
 			}
 			return file;
@@ -189,27 +194,30 @@ var conditionalDevServer = async (fileKey) => {
 };
 var GET_DEFAULT_URL = () => {
 	const vcurl = process.env.VERCEL_URL;
-	if (vcurl)
-		return `https://${vcurl}/api/uploadthing`;
+	if (vcurl) return `https://${vcurl}/api/uploadthing`;
 	return `http://localhost:${process.env.PORT ?? 3e3}/api/uploadthing`;
 };
 
 var buildRequestHandler = (opts) => {
 	return async (input) => {
 		const { router, config } = opts;
-		const upSecret = (config == null ? void 0 : config.uploadthingId) ?? env.UPLOADTHING_SECRET;
+		const upSecret =
+			(config == null ? void 0 : config.uploadthingId) ??
+			env.UPLOADTHING_SECRET;
 		const { uploadthingHook, slug, req, res, actionType } = input;
-		if (!slug)
-			throw new Error("we need a slug");
+		if (!slug) throw new Error("we need a slug");
 		const uploadable = router[slug];
 		if (!uploadable) {
 			return { status: 404 };
 		}
-		const reqBody = "body" in req && typeof req.body === "string" ? JSON.parse(req.body) : await req.json();
+		const reqBody =
+			"body" in req && typeof req.body === "string"
+				? JSON.parse(req.body)
+				: await req.json();
 		if (uploadthingHook && uploadthingHook === "callback") {
 			uploadable.resolver({
 				file: reqBody.file,
-				metadata: reqBody.metadata
+				metadata: reqBody.metadata,
 			});
 			return { status: 200 };
 		}
@@ -219,7 +227,10 @@ var buildRequestHandler = (opts) => {
 		try {
 			const { files } = reqBody;
 			const metadata = await uploadable._def.middleware(req, res);
-			if (!Array.isArray(files) || !files.every((f) => typeof f === "string"))
+			if (
+				!Array.isArray(files) ||
+				!files.every((f) => typeof f === "string")
+			)
 				throw new Error("Need file array");
 			const uploadthingApiResponse = await fetch(
 				generateUploadThingURL("/api/prepareUpload"),
@@ -229,15 +240,19 @@ var buildRequestHandler = (opts) => {
 						files,
 						fileTypes: uploadable._def.fileTypes,
 						metadata,
-						callbackUrl: (config == null ? void 0 : config.callbackUrl) ?? GET_DEFAULT_URL(),
+						callbackUrl:
+							(config == null ? void 0 : config.callbackUrl) ??
+							GET_DEFAULT_URL(),
 						callbackSlug: slug,
-						maxFileSize: fileSizeToBytes(uploadable._def.maxSize ?? "16MB")
+						maxFileSize: fileSizeToBytes(
+							uploadable._def.maxSize ?? "16MB",
+						),
 					}),
 					headers: {
 						"Content-Type": "application/json",
-						"x-uploadthing-api-key": upSecret ?? ""
-					}
-				}
+						"x-uploadthing-api-key": upSecret ?? "",
+					},
+				},
 			);
 			if (!uploadthingApiResponse.ok) {
 				console.error("[UT] unable to get presigned urls");
@@ -274,21 +289,21 @@ var createNextRouteHandler = (opts) => {
 			uploadthingHook,
 			slug,
 			actionType,
-			req
+			req,
 		});
 		if (response.status === 200) {
 			return new Response(JSON.stringify(response.body), {
 				status: response.status,
 				headers: {
-					"x-uploadthing-version": UPLOADTHING_VERSION
-				}
+					"x-uploadthing-version": UPLOADTHING_VERSION,
+				},
 			});
 		}
 		return new Response("Error", {
 			status: response.status,
 			headers: {
-				"x-uploadthing-version": UPLOADTHING_VERSION
-			}
+				"x-uploadthing-version": UPLOADTHING_VERSION,
+			},
 		});
 	};
 	return { POST };
@@ -305,13 +320,15 @@ var createNextPageApiHandler = (opts) => {
 		if (actionType && typeof actionType !== "string")
 			return res.status(400).send("`actionType` must not be an array");
 		if (uploadthingHook && typeof uploadthingHook !== "string")
-			return res.status(400).send("`uploadthingHook` must not be an array");
+			return res
+				.status(400)
+				.send("`uploadthingHook` must not be an array");
 		const response = await requestHandler({
 			uploadthingHook,
 			slug,
 			actionType,
 			req,
-			res
+			res,
 		});
 		res.status(response.status);
 		res.setHeader("x-uploadthing-version", UPLOADTHING_VERSION);
@@ -332,21 +349,21 @@ var createSvelteKitHandler = (opts) => {
 			uploadthingHook,
 			slug,
 			actionType,
-			req
+			req,
 		});
 		if (response.status === 200) {
 			return new Response(JSON.stringify(response.body), {
 				status: response.status,
 				headers: {
-					"x-uploadthing-version": UPLOADTHING_VERSION
-				}
+					"x-uploadthing-version": UPLOADTHING_VERSION,
+				},
 			});
 		}
 		return new Response("Error", {
 			status: response.status,
 			headers: {
-				"x-uploadthing-version": UPLOADTHING_VERSION
-			}
+				"x-uploadthing-version": UPLOADTHING_VERSION,
+			},
 		});
 	};
 	return { POST };
@@ -359,6 +376,6 @@ export {
 	createNextPageApiHandler,
 	createNextRouteHandler,
 	createSvelteKitHandler,
-	unsetMarker
+	unsetMarker,
 };
 //# sourceMappingURL=server.mjs.map
